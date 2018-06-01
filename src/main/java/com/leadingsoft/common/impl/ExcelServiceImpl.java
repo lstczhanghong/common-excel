@@ -20,9 +20,9 @@ public class ExcelServiceImpl implements ExcelService {
     private static final String SONG_TI_FONT = "宋体";
 
     @Override
-    public HSSFWorkbook createWorkBook(String fileName, String[] displayNames, String[] keys, List datas, Class _class, IExcelCallBack callBack, IDataCallBack dataCallback) throws IllegalAccessException {
+    public HSSFWorkbook createWorkBook(String sheetName, String[] displayNames, String[] keys, List datas, Class _class, IExcelCallBack callBack, IDataCallBack dataCallback) throws IllegalAccessException {
         HSSFWorkbook workbook = new HSSFWorkbook();
-        HSSFSheet sheet = workbook.createSheet(fileName);
+        HSSFSheet sheet = workbook.createSheet(sheetName);
         Font contentFont = workbook.createFont();
         contentFont.setBold(false);
         // 计算该数据表的列数
@@ -71,9 +71,9 @@ public class ExcelServiceImpl implements ExcelService {
     }
 
     @Override
-    public HSSFWorkbook createWorkBook(String fileName, String[] displayNames, String[] keys, List<Map<String, Object>> datas, IExcelCallBack callBack, IDataCallBack dataCallback) {
+    public HSSFWorkbook createWorkBook(String sheetName, String[] displayNames, String[] keys, List<Map<String, Object>> datas, IExcelCallBack callBack, IDataCallBack dataCallback) {
         HSSFWorkbook workbook = new HSSFWorkbook();
-        HSSFSheet sheet = workbook.createSheet(fileName);
+        HSSFSheet sheet = workbook.createSheet(sheetName);
         Font contentFont = workbook.createFont();
         contentFont.setBold(false);
         // 计算该数据表的列数
@@ -114,10 +114,10 @@ public class ExcelServiceImpl implements ExcelService {
     }
 
     @Override
-    public HSSFWorkbook createWorkBook(String fileName, List<String[]> titles, String[] keys, List<Map<String, Object>> datas, IExcelCallBack callBack, IDataCallBack dataCallback) {
+    public HSSFWorkbook createWorkBook(String sheetName, List<String[]> titles, String[] keys, List<Map<String, Object>> datas, IExcelCallBack callBack, IDataCallBack dataCallback) {
 
         HSSFWorkbook workbook = new HSSFWorkbook();
-        HSSFSheet sheet = workbook.createSheet(fileName);
+        HSSFSheet sheet = workbook.createSheet(sheetName);
         Font contentFont = workbook.createFont();
         contentFont.setBold(true);
         //处理表头
