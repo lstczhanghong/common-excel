@@ -20,7 +20,7 @@ public class ExcelServiceImpl implements ExcelService {
     private static final String SONG_TI_FONT = "宋体";
 
     @Override
-    public HSSFWorkbook createWorkBook(String fileName, String[] displayNames, String[] keys, List datas, Class _class, IExcelCallBack callBack, IDataCallBack dataCallback) {
+    public HSSFWorkbook createWorkBook(String fileName, String[] displayNames, String[] keys, List datas, Class _class, IExcelCallBack callBack, IDataCallBack dataCallback) throws IllegalAccessException {
         HSSFWorkbook workbook = new HSSFWorkbook();
         HSSFSheet sheet = workbook.createSheet(fileName);
         Font contentFont = workbook.createFont();

@@ -22,7 +22,7 @@ public interface ExcelService {
      */
     HSSFWorkbook createWorkBook(String fileName, String[] displayNames,
                                 String[] keys, List datas, Class _class,
-                                IExcelCallBack callBack, IDataCallBack dataCallback);
+                                IExcelCallBack callBack, IDataCallBack dataCallback) throws IllegalAccessException;
 
     /**
      * 生成Excel
