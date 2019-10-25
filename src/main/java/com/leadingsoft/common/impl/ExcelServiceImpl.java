@@ -22,94 +22,120 @@ public class ExcelServiceImpl implements ExcelService {
     @Override
     public HSSFWorkbook createWorkBook(String sheetName, String[] displayNames, String[] keys, List datas, Class _class, IExcelCallBack callBack, IDataCallBack dataCallback) throws IllegalAccessException {
         HSSFWorkbook workbook = new HSSFWorkbook();
-        HSSFSheet sheet = workbook.createSheet(sheetName);
         Font contentFont = workbook.createFont();
         contentFont.setBold(false);
-        // 计算该数据表的列数
-        for (int i = 0; i < displayNames.length; i++) {
-            if (i == 0) {
-                setColumnsWidthStyle(sheet, i, 3000);
-            } else {
-                setColumnsWidthStyle(sheet, i, 6000);
-            }
-        }
-        // 设置标题行
-        setHeadLine(workbook, displayNames, 0, (short) 800);
-
         CellStyle style = createTrueBorderCellStyle(workbook,
                 HSSFColor.WHITE.index, HSSFColor.WHITE.index,
                 HorizontalAlignment.CENTER, contentFont);
         style.setWrapText(true);
-        Field[] fs = _class.getDeclaredFields();
-        short rowNumber = 0;
-        for (Object object : datas) {
-            rowNumber++;
-            HSSFRow row = sheet.createRow((short) rowNumber);
-            row.setHeight((short) 800);
-            for (int i = 0; i < keys.length; i++) {
-                for (Field field : fs) {
-                    field.setAccessible(true); // 设置些属性是可以访问的
-                    if (keys[i].equals(field.getName())) {
-                        HSSFCell cell = row.createCell(i);
-                        cell.setCellType(CellType.STRING);
-                        String key = keys[i];
-                        String val = field.get(object) == null ? "" : field.get(object).toString();
-                        val = dataCallback == null ? val : dataCallback.run(key, val);
-                        cell.setCellValue(new HSSFRichTextString(val));
-                        cell.setCellStyle(style);
-                    }
+        //根据数据量来创建sheet，因为一个sheet的行数有限 65535
+        long total = datas.size();
+        long sheetSize = 50000;
+        long sheetNum = total % sheetSize == 0 ? total / sheetSize : total / sheetSize + 1;
 
+        for (int s = 1; s <= sheetNum; s++) {
+            HSSFSheet sheet = workbook.createSheet(sheetName + s);
+            //这一个sheet 数据
+            int sheetSize_ = (int) sheetSize;
+            List tempDatas = null;
+            if (s == sheetNum) {
+                tempDatas = datas.subList((s - 1) * sheetSize_, datas.size());
+            } else {
+                tempDatas = datas.subList((s - 1) * sheetSize_, s * sheetSize_);
+            }
+            // 计算该数据表的列数
+            for (int i = 0; i < displayNames.length; i++) {
+                if (i == 0) {
+                    setColumnsWidthStyle(sheet, i, 3000);
+                } else {
+                    setColumnsWidthStyle(sheet, i, 6000);
                 }
-
+            }
+            // 设置标题行
+            setHeadLine(workbook, displayNames, 0, (short) 800);
+            Field[] fs = _class.getDeclaredFields();
+            int rowNumber = 0;
+            for (Object object : tempDatas) {
+                rowNumber++;
+                HSSFRow row = sheet.createRow(rowNumber);
+                row.setHeight((short) 800);
+                for (int i = 0; i < keys.length; i++) {
+                    for (Field field : fs) {
+                        field.setAccessible(true); // 设置些属性是可以访问的
+                        if (keys[i].equals(field.getName())) {
+                            HSSFCell cell = row.createCell(i);
+                            cell.setCellType(CellType.STRING);
+                            String key = keys[i];
+                            String val = field.get(object) == null ? "" : field.get(object).toString();
+                            val = dataCallback == null ? val : dataCallback.run(key, val);
+                            cell.setCellValue(new HSSFRichTextString(val));
+                            cell.setCellStyle(style);
+                        }
+                    }
+                }
+            }
+            if (callBack != null) {
+                callBack.run(sheet);
             }
         }
-        if (callBack != null) {
-            callBack.run(sheet);
-        }
-
         return workbook;
     }
 
     @Override
     public HSSFWorkbook createWorkBook(String sheetName, String[] displayNames, String[] keys, List<Map<String, Object>> datas, IExcelCallBack callBack, IDataCallBack dataCallback) {
         HSSFWorkbook workbook = new HSSFWorkbook();
-        HSSFSheet sheet = workbook.createSheet(sheetName);
         Font contentFont = workbook.createFont();
         contentFont.setBold(false);
-        // 计算该数据表的列数
-        for (int i = 0; i < displayNames.length; i++) {
-            if (i == 0) {
-                setColumnsWidthStyle(sheet, i, 3000);
-            } else {
-                setColumnsWidthStyle(sheet, i, 5000);
-            }
-        }
-        // 设置标题行
-        setHeadLine(workbook, displayNames, 0, (short) 800);
         CellStyle style = createTrueBorderCellStyle(workbook,
                 HSSFColor.WHITE.index, HSSFColor.WHITE.index,
                 HorizontalAlignment.CENTER, contentFont);
         style.setWrapText(true);
+        //根据数据量来创建sheet，因为一个sheet的行数有限 65535
+        long total = datas.size();
+        long sheetSize = 50000;
+        long sheetNum = total % sheetSize == 0 ? total / sheetSize : total / sheetSize + 1;
 
-        short rowNumber = 0;
-        for (Map<String, Object> map : datas) {
-            rowNumber++;
-            HSSFRow row = sheet.createRow((short) rowNumber);
-            row.setHeight((short) 800);
-            for (int i = 0; i < keys.length; i++) {
-                HSSFCell cell = row.createCell(i);
-                cell.setCellType(CellType.STRING);
-                String key = keys[i].toString();
-                String val = map.get(key) == null ? "" : map.get(key).toString();
-                val = dataCallback == null ? val : dataCallback.run(key, val);
-                cell.setCellValue(new HSSFRichTextString(val));
-                cell.setCellStyle(style);
+        for (int s = 1; s <= sheetNum; s++) {
+            HSSFSheet sheet = workbook.createSheet(sheetName + s);
+            //这一个sheet 数据
+            int sheetSize_ = (int) sheetSize;
+            List<Map<String, Object>> tempDatas = null;
+            if (s == sheetNum) {
+                tempDatas = datas.subList((s - 1) * sheetSize_, datas.size());
+            } else {
+                tempDatas = datas.subList((s - 1) * sheetSize_, s * sheetSize_);
+            }
+            // 计算该数据表的列数
+            for (int i = 0; i < displayNames.length; i++) {
+                if (i == 0) {
+                    setColumnsWidthStyle(sheet, i, 3000);
+                } else {
+                    setColumnsWidthStyle(sheet, i, 5000);
+                }
+            }
+            // 设置标题行
+            setHeadLine(workbook, displayNames, 0, (short) 800);
+            int rowNumber = 0;
+            for (Map<String, Object> map : tempDatas) {
+                rowNumber++;
+                HSSFRow row = sheet.createRow(rowNumber);
+                row.setHeight((short) 800);
+                for (int i = 0; i < keys.length; i++) {
+                    HSSFCell cell = row.createCell(i);
+                    cell.setCellType(CellType.STRING);
+                    String key = keys[i].toString();
+                    String val = map.get(key) == null ? "" : map.get(key).toString();
+                    val = dataCallback == null ? val : dataCallback.run(key, val);
+                    cell.setCellValue(new HSSFRichTextString(val));
+                    cell.setCellStyle(style);
+                }
+            }
+
+            if (callBack != null) {
+                callBack.run(sheet);
             }
         }
 
-        if (callBack != null) {
-            callBack.run(sheet);
-        }
         return workbook;
     }
 
@@ -117,60 +143,77 @@ public class ExcelServiceImpl implements ExcelService {
     public HSSFWorkbook createWorkBook(String sheetName, List<String[]> titles, String[] keys, List<Map<String, Object>> datas, IExcelCallBack callBack, IDataCallBack dataCallback) {
 
         HSSFWorkbook workbook = new HSSFWorkbook();
-        HSSFSheet sheet = workbook.createSheet(sheetName);
         Font contentFont = workbook.createFont();
         contentFont.setBold(true);
-        //处理表头
-        if (titles != null && titles.size() > 0) {
-            // 计算该数据表的列数
-            for (int i = 0; i < titles.get(0).length; i++) {
-                if (i == 0) {
-                    setColumnsWidthStyle(sheet, i, 3000);
-                } else {
-                    setColumnsWidthStyle(sheet, i, 5000);
-                }
-            }
-            for (int i = 0; i < titles.size(); i++) {
-                if (i == 0) {
-                    String[] displayNames = titles.get(i);
-                    // 设置标题行
-                    setHeadLine(workbook, displayNames, i, (short) 900);
-                } else {
-                    String[] displayNames = titles.get(i);
-                    // 设置标题行
-                    setHeadLine(workbook, displayNames, i, (short) 800);
-                }
-            }
-        }
-
         //处理数据内容
         CellStyle style = createTrueBorderCellStyle(workbook,
                 HSSFColor.WHITE.index, HSSFColor.WHITE.index,
                 HorizontalAlignment.CENTER, contentFont);
         style.setWrapText(true);
 
-        short rowNumber = 0;
-        if (CollectionUtils.isNotEmpty(titles)) {
-            rowNumber = (short) titles.size();
-        }
-        for (Map<String, Object> map : datas) {
-            HSSFRow row = sheet.createRow(rowNumber++);
-            row.setHeight((short) 800);
+        //根据数据量来创建sheet，因为一个sheet的行数有限 65535
+        long total = datas.size();
+        long sheetSize = 50000;
+        long sheetNum = total % sheetSize == 0 ? total / sheetSize : total / sheetSize + 1;
+        for (int s = 1; s <= sheetNum; s++) {
+            HSSFSheet sheet = workbook.createSheet(sheetName + s);
+            //这一个sheet 数据
+            int sheetSize_ = (int) sheetSize;
+            List<Map<String, Object>> tempDatas = null;
+            if (s == sheetNum) {
+                tempDatas = datas.subList((s - 1) * sheetSize_, datas.size());
+            } else {
+                tempDatas = datas.subList((s - 1) * sheetSize_, s * sheetSize_);
+            }
+            //处理表头
+            if (titles != null && titles.size() > 0) {
+                // 计算该数据表的列数
+                for (int i = 0; i < titles.get(0).length; i++) {
+                    if (i == 0) {
+                        setColumnsWidthStyle(sheet, i, 3000);
+                    } else {
+                        setColumnsWidthStyle(sheet, i, 5000);
+                    }
+                }
+                for (int i = 0; i < titles.size(); i++) {
+                    if (i == 0) {
+                        String[] displayNames = titles.get(i);
+                        // 设置标题行
+                        setHeadLine(workbook, displayNames, i, (short) 900);
+                    } else {
+                        String[] displayNames = titles.get(i);
+                        // 设置标题行
+                        setHeadLine(workbook, displayNames, i, (short) 800);
+                    }
+                }
+            }
 
-            for (int i = 0; i < keys.length; i++) {
-                HSSFCell cell = row.createCell(i);
-                cell.setCellType(CellType.STRING);
-                String key = keys[i];
-                String val = map.get(key) == null ? "" : map.get(key).toString();
-                val = dataCallback == null ? val : dataCallback.run(key, val);
-                cell.setCellValue(new HSSFRichTextString(val));
-                cell.setCellStyle(style);
+
+
+            int rowNumber = 0;
+            if (CollectionUtils.isNotEmpty(titles)) {
+                rowNumber = titles.size();
+            }
+            for (Map<String, Object> map : tempDatas) {
+                HSSFRow row = sheet.createRow(rowNumber++);
+                row.setHeight((short) 800);
+
+                for (int i = 0; i < keys.length; i++) {
+                    HSSFCell cell = row.createCell(i);
+                    cell.setCellType(CellType.STRING);
+                    String key = keys[i];
+                    String val = map.get(key) == null ? "" : map.get(key).toString();
+                    val = dataCallback == null ? val : dataCallback.run(key, val);
+                    cell.setCellValue(new HSSFRichTextString(val));
+                    cell.setCellStyle(style);
+                }
+            }
+
+            if (callBack != null) {
+                callBack.run(sheet);
             }
         }
 
-        if (callBack != null) {
-            callBack.run(sheet);
-        }
 
         return workbook;
     }
